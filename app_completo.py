@@ -678,5 +678,4 @@ if __name__ == '__main__':
     print("🌈 Temas dinámicos")
     print("📝 Ve a: http://localhost:5000")
     print("-" * 50)
-    if __name__ == '__main__':
     app.run(debug=False, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
