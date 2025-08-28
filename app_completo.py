@@ -1,6 +1,7 @@
 from flask import Flask, render_template_string, session, request, jsonify
 import random
 import time
+import os
 
 app = Flask(__name__)
 app.secret_key = 'lectolandia-secret-key-2024'
@@ -92,6 +93,7 @@ badges = {
         {'id': 'master_reader', 'name': 'Mestra de Lectura', 'description': 'Has llegit 120 paraules', 'icon': '💫', 'threshold': 120, 'theme': 'rainbow'}
     ]
 }
+
 themes = {
     'default': 'from-purple-400 via-pink-400 to-blue-400',
     'yellow': 'from-yellow-300 via-orange-300 to-red-400',
@@ -199,7 +201,6 @@ template = '''
 </head>
 <body class="min-h-screen transition-all duration-1000" style="background: linear-gradient(135deg, {{ theme_gradient }}) !important; background-attachment: fixed !important;">
    
-   <!-- Notificación de nueva etiqueta -->
    {% if new_badge %}
    <div id="badge-notification" class="fixed top-20 right-4 z-40 bg-white rounded-xl shadow-xl p-4 border-2 border-yellow-400 max-w-xs">
        <div class="text-center">
@@ -384,36 +385,34 @@ template = '''
        }
 
        function nextItem() {
-    fetch('/next_item', { method: 'POST' })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Actualizar contenido
-                document.querySelector('.text-6xl.font-bold').textContent = data.new_item;
-                document.querySelector('.text-2xl.font-bold.text-purple-600').textContent = data.level;
-                document.querySelector('.text-2xl.font-bold.text-pink-600').textContent = data.points;
-                document.querySelector('.text-3xl.font-bold.text-green-600').textContent = data.read_count;
-                
-                // Cambiar fondo según tema
-                const themeGradient = data.theme_gradient;
-                if (themeGradient.includes('yellow')) {
-                    document.body.style.background = 'linear-gradient(135deg, #fde68a, #fed7aa, #f87171)';
-                } else if (themeGradient.includes('blue')) {
-                    document.body.style.background = 'linear-gradient(135deg, #60a5fa, #22d3ee, #34d399)';
-                } else if (themeGradient.includes('purple')) {
-                    document.body.style.background = 'linear-gradient(135deg, #8b5cf6, #6366f1, #3b82f6)';
-                } else if (themeGradient.includes('pink')) {
-                    document.body.style.background = 'linear-gradient(135deg, #f472b6, #fb7185, #f87171)';
-                } else if (themeGradient.includes('green')) {
-                    document.body.style.background = 'linear-gradient(135deg, #4ade80, #34d399, #2dd4bf)';
-                } else if (themeGradient.includes('gold')) {
-                    document.body.style.background = 'linear-gradient(135deg, #facc15, #fbbf24, #fb923c)';
-                } else if (themeGradient.includes('rainbow')) {
-                    document.body.style.background = 'linear-gradient(135deg, #f472b6, #c084fc, #818cf8, #60a5fa, #4ade80, #facc15)';
-                }
-            }
-        });
-}
+           fetch('/next_item', { method: 'POST' })
+               .then(response => response.json())
+               .then(data => {
+                   if (data.success) {
+                       document.querySelector('.text-6xl.font-bold').textContent = data.new_item;
+                       document.querySelector('.text-2xl.font-bold.text-purple-600').textContent = data.level;
+                       document.querySelector('.text-2xl.font-bold.text-pink-600').textContent = data.points;
+                       document.querySelector('.text-3xl.font-bold.text-green-600').textContent = data.read_count;
+                       
+                       const themeGradient = data.theme_gradient;
+                       if (themeGradient.includes('yellow')) {
+                           document.body.style.background = 'linear-gradient(135deg, #fde68a, #fed7aa, #f87171)';
+                       } else if (themeGradient.includes('blue')) {
+                           document.body.style.background = 'linear-gradient(135deg, #60a5fa, #22d3ee, #34d399)';
+                       } else if (themeGradient.includes('purple')) {
+                           document.body.style.background = 'linear-gradient(135deg, #8b5cf6, #6366f1, #3b82f6)';
+                       } else if (themeGradient.includes('pink')) {
+                           document.body.style.background = 'linear-gradient(135deg, #f472b6, #fb7185, #f87171)';
+                       } else if (themeGradient.includes('green')) {
+                           document.body.style.background = 'linear-gradient(135deg, #4ade80, #34d399, #2dd4bf)';
+                       } else if (themeGradient.includes('gold')) {
+                           document.body.style.background = 'linear-gradient(135deg, #facc15, #fbbf24, #fb923c)';
+                       } else if (themeGradient.includes('rainbow')) {
+                           document.body.style.background = 'linear-gradient(135deg, #f472b6, #c084fc, #818cf8, #60a5fa, #4ade80, #facc15)';
+                       }
+                   }
+               });
+       }
 
        function resetStats() {
            fetch('/reset_stats', { method: 'POST' })
@@ -456,10 +455,9 @@ template = '''
            }
        }
 
-       // Detectar barra espaciadora para siguiente elemento
        document.addEventListener('keydown', function(event) {
            if (event.code === 'Space' || event.key === ' ') {
-               event.preventDefault(); // Evitar scroll de página
+               event.preventDefault();
                nextItem();
            }
        });
@@ -476,30 +474,28 @@ template = '''
            }, 1000);
        }
    
-   // Forzar cambio de fondo después de cargar
-   document.addEventListener('DOMContentLoaded', function() {
-       const themeGradient = '{{ theme_gradient }}';
-       document.body.style.background = 'linear-gradient(135deg, #8b5cf6, #ec4899, #3b82f6)';
-       document.body.style.backgroundAttachment = 'fixed';
-       
-       // Si hay tema específico, aplicarlo
-       if (themeGradient.includes('yellow')) {
-           document.body.style.background = 'linear-gradient(135deg, #fde68a, #fed7aa, #f87171)';
-       } else if (themeGradient.includes('blue')) {
-           document.body.style.background = 'linear-gradient(135deg, #60a5fa, #22d3ee, #34d399)';
-       } else if (themeGradient.includes('purple')) {
-           document.body.style.background = 'linear-gradient(135deg, #8b5cf6, #6366f1, #3b82f6)';
-       } else if (themeGradient.includes('pink')) {
-           document.body.style.background = 'linear-gradient(135deg, #f472b6, #fb7185, #f87171)';
-       } else if (themeGradient.includes('green')) {
-           document.body.style.background = 'linear-gradient(135deg, #4ade80, #34d399, #2dd4bf)';
-       } else if (themeGradient.includes('gold')) {
-           document.body.style.background = 'linear-gradient(135deg, #facc15, #fbbf24, #fb923c)';
-       } else if (themeGradient.includes('rainbow')) {
-           document.body.style.background = 'linear-gradient(135deg, #f472b6, #c084fc, #818cf8, #60a5fa, #4ade80, #facc15)';
-       }
-   });
-</script>
+       document.addEventListener('DOMContentLoaded', function() {
+           const themeGradient = '{{ theme_gradient }}';
+           document.body.style.background = 'linear-gradient(135deg, #8b5cf6, #ec4899, #3b82f6)';
+           document.body.style.backgroundAttachment = 'fixed';
+           
+           if (themeGradient.includes('yellow')) {
+               document.body.style.background = 'linear-gradient(135deg, #fde68a, #fed7aa, #f87171)';
+           } else if (themeGradient.includes('blue')) {
+               document.body.style.background = 'linear-gradient(135deg, #60a5fa, #22d3ee, #34d399)';
+           } else if (themeGradient.includes('purple')) {
+               document.body.style.background = 'linear-gradient(135deg, #8b5cf6, #6366f1, #3b82f6)';
+           } else if (themeGradient.includes('pink')) {
+               document.body.style.background = 'linear-gradient(135deg, #f472b6, #fb7185, #f87171)';
+           } else if (themeGradient.includes('green')) {
+               document.body.style.background = 'linear-gradient(135deg, #4ade80, #34d399, #2dd4bf)';
+           } else if (themeGradient.includes('gold')) {
+               document.body.style.background = 'linear-gradient(135deg, #facc15, #fbbf24, #fb923c)';
+           } else if (themeGradient.includes('rainbow')) {
+               document.body.style.background = 'linear-gradient(135deg, #f472b6, #c084fc, #818cf8, #60a5fa, #4ade80, #facc15)';
+           }
+       });
+   </script>
 </body>
 </html>
 '''
@@ -617,7 +613,6 @@ def next_item():
         session['interface_theme'] = new_badge['theme']
         session['new_badge'] = new_badge
     
-    # Generar nuevo item
     new_item = generar_item(session['mode'], session['syllable_count'], session['language'])
     
     return jsonify({
@@ -629,6 +624,7 @@ def next_item():
         'level': (session['points'] // 100) + 1,
         'new_badge': new_badge
     })
+
 @app.route('/toggle_timer', methods=['POST'])
 def toggle_timer():
     current_time = time.time()
@@ -670,13 +666,4 @@ def update_config():
     return jsonify({'success': True})
 
 if __name__ == '__main__':
-    print("🏰 ¡LectoLandia COMPLETA se está iniciando!")
-    print("📱 Interfaz idéntica a tu React original")
-    print("🎮 Sistema completo de gamificación")
-    print("⏱️ Cronómetro funcional")
-    print("🏷️ Sistema de insignias")
-    print("🌈 Temas dinámicos")
-    print("📝 Ve a: http://localhost:5000")
-    print("-" * 50)
     app.run(debug=False, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
-
